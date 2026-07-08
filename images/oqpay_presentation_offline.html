@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OqPay Super-App | Data Science Presentation</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #070a13;
+      color: #f8fafc;
+      font-family: Inter, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    .progress { position: fixed; top: 0; left: 0; height: 4px; background: #67e8f9; z-index: 100; width: 0%; }
+    .topnav {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 90; display: flex; gap: 10px; align-items: center;
+      padding: 10px 16px; border-radius: 999px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(20px); font-size: 13px;
+    }
+    .topnav a:hover { color: #67e8f9; }
+    .topnav span { opacity: .35; }
+    .dots { position: fixed; right: 22px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 80; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,.25); transition: .25s; }
+    .dot.active { background: #67e8f9; transform: scale(1.35); }
+    .slide {
+      min-height: 100vh; padding: 82px 7vw; position: relative;
+      display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; position: relative; z-index: 2; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .hero-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 36px; align-items: center; }
+    .glass {
+      background: rgba(255,255,255,.075);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 24px 90px rgba(0,0,0,.35);
+      backdrop-filter: blur(22px);
+    }
+    .card { border-radius: 30px; padding: 28px; transition: .3s ease; }
+    .card:hover { transform: translateY(-8px) scale(1.015); border-color: rgba(103,232,249,.55); }
+    .badge {
+      display: inline-flex; border-radius: 999px; padding: 10px 15px;
+      border: 1px solid rgba(103,232,249,.35);
+      background: rgba(103,232,249,.09); color: #a5f3fc; font-weight: 700; font-size: 14px;
+    }
+    .grad {
+      background: linear-gradient(90deg,#67e8f9,#a78bfa,#f472b6);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    h1 { font-size: clamp(42px, 7vw, 82px); line-height: .98; margin: 18px 0 22px; font-weight: 950; letter-spacing: -2px; }
+    h2 { font-size: clamp(34px, 5vw, 66px); line-height: 1.02; margin: 18px 0 28px; font-weight: 950; letter-spacing: -1.5px; }
+    h3 { font-size: 24px; margin: 0 0 12px; }
+    p { line-height: 1.55; }
+    .muted { color: #cbd5e1; }
+    .small { color: #94a3b8; font-size: 14px; }
+    .btnrow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .btn {
+      border-radius: 999px; padding: 14px 22px; font-weight: 800; border: 1px solid rgba(255,255,255,.2);
+      cursor: pointer; transition: .25s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn.primary { background: #67e8f9; color: #07111f; border: none; }
+    .btn:hover { transform: scale(1.05); background: rgba(255,255,255,.12); }
+    .btn.primary:hover { background: #a5f3fc; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .38; animation: moveBlob 9s ease-in-out infinite alternate; }
+    .blob1 { width: 520px; height: 520px; background: #06b6d4; top: -130px; left: -140px; }
+    .blob2 { width: 560px; height: 560px; background: #d946ef; right: -130px; bottom: -160px; animation-delay: -2s; }
+    @keyframes moveBlob { from { transform: translate(0,0) scale(1); } to { transform: translate(40px, 35px) scale(1.08); } }
+    .float { animation: float 5s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
+    .reveal { opacity: 0; transform: translateY(32px); transition: .8s ease; }
+    .reveal.show { opacity: 1; transform: translateY(0); }
+    .typewriter::after { content:"|"; animation: blink .8s infinite; color:#67e8f9; }
+    @keyframes blink { 50% { opacity:0; } }
+    .metric { font-size: clamp(44px, 6vw, 76px); font-weight: 950; line-height: 1; margin: 8px 0 12px; }
+    canvas { width: 100%; height: 270px; min-height: 220px; display: block; }
+    #s5 canvas { height: 220px; }
+    .flow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; align-items: center; text-align: center; }
+    .flow2 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: center; text-align: center; margin-top: 22px; }
+    .flow-step { border-radius: 22px; padding: 18px 12px; cursor: pointer; transition: .25s; min-height: 104px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+    .flow-step:hover { transform: scale(1.04); background: rgba(103,232,249,.14); }
+    .arrow { font-size: 34px; color: #67e8f9; }
+    .pulse { animation: pulseSoft 2.2s ease-in-out infinite; }
+    @keyframes pulseSoft { 50% { box-shadow: 0 0 45px rgba(103,232,249,.28); } }
+    .icon { font-size: 42px; margin-bottom: 10px; }
+    .mini-card { border-radius: 24px; padding: 20px; }
+    .section-cyan { background: radial-gradient(circle at 15% 20%, rgba(34,211,238,.25), transparent 38%), #070a13; }
+    .section-purple { background: radial-gradient(circle at 80% 20%, rgba(139,92,246,.26), transparent 40%), #070a13; }
+    .section-pink { background: radial-gradient(circle at 50% 15%, rgba(244,114,182,.18), transparent 45%), #070a13; }
+    .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .team-box { border-radius: 20px; padding: 18px; background: rgba(255,255,255,.07); }
+    .subtitle { font-size: clamp(18px, 2vw, 25px); color: #cbd5e1; min-height: 40px; }
+
+    .legend { display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:10px; font-size:14px; color:#cbd5e1; }
+    .legend-dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:7px; vertical-align:-1px; }
+    .modal { position: fixed; inset: 0; z-index: 200; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(0,0,0,.72); backdrop-filter: blur(16px); }
+    .modal.open { display:flex; }
+    .modal-box { width:min(1120px,96vw); max-height:90vh; overflow:auto; border-radius:30px; padding:28px; background:#0b1020; border:1px solid rgba(255,255,255,.18); box-shadow:0 40px 120px rgba(0,0,0,.55); }
+    .modal-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
+    .close-btn { border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; border-radius:999px; padding:10px 14px; cursor:pointer; font-weight:800; }
+    .data-table { width:100%; border-collapse:collapse; font-size:14px; color:#e2e8f0; overflow:hidden; border-radius:18px; }
+    .data-table th, .data-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.12); text-align:left; }
+    .data-table th { color:#a5f3fc; background:rgba(103,232,249,.08); }
+    .chart-note { margin-top:10px; color:#94a3b8; font-size:13px; }
+    .graph-img { width:100%; display:block; border-radius:18px; border:1px solid rgba(255,255,255,.14); background:#fff; margin-top:12px; }
+    .image-card { padding:18px; }
+
+    @media (max-width: 850px) {
+      .hero-grid, .grid2, .grid3, .grid4, .flow, .flow2 { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .dots { display: none; }
+      .topnav { width: calc(100% - 22px); justify-content: center; font-size: 11px; gap: 6px; }
+      .slide { padding: 78px 22px; }
+      canvas { height: 230px; }
+    }
+    @media print {
+      .topnav, .dots, .progress, .btnrow { display: none; }
+      .slide { min-height: 100vh; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <nav class="topnav">
+    <a href="#s1">Титул</a><span>/</span>
+    <a href="#s2">Проблема</a><span>/</span>
+    <a href="#s7">Вывод</a><span>/</span>
+    <a href="#s3">Гипотезы</a><span>/</span>
+    <a href="#s8">Рекомендации</a>
+  </nav>
+  <nav class="dots" id="dots"></nav>
+
+  <section id="s1" class="slide">
+    <div class="blob blob1"></div><div class="blob blob2"></div>
+    <div class="container hero-grid">
+      <div class="reveal">
+        <span class="badge">OqPay Super-App </span>
+        <h1>Просадка заказов <span class="grad">и рост числа жалоб </span></h1>
+        <p class="subtitle typewriter" id="typing"></p>
+        <div class="btnrow">
+          <a class="btn primary" href="#s2">▶ Начать защиту</a>
+          <a class="btn" href="#s8">🚀 К рекомендациям</a>
+        </div>
+      </div>
+      <div class="glass card float reveal">
+        <p class="small">Команда: PLUVIA</p>
+        <h3>Garayeva Rufina и ...</h3>
+        <div class="team-grid">
+          <div class="team-box">📊<br><b>Hypotheses</b><br><span class="small">проверка причин</span></div>
+          <div class="team-box">💳<br><b>Payments</b><br><span class="small">failed payment</span></div>
+          <div class="team-box">📦<br><b>Delivery</b><br><span class="small">product_not_received</span></div>
+          <div class="team-box">💰<br><b>Losses</b><br><span class="small">финансовые риски</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s2" class="slide">
+    <div class="container">
+      <div class="reveal">
+        <span class="badge">Слайд 2 · Проблема</span>
+        <h2>Бизнес-вопрос: где именно возникают потери?</h2>
+      </div>
+      <div class="grid2">
+        <div class="glass card reveal">
+          <div class="icon">⚠️</div>
+          <h3>Бизнес-задача</h3>
+          <p class="muted">В один из месяцев компания зафиксировала рост жалоб и финансовых потерь, однако причина осталась неизвестной.</p>
+        </div>
+        <div class="glass card reveal">
+          <div class="icon">🎯</div>
+          <h3>Цель исследования</h3>
+          <p class="muted">Определить причины роста жалоб и финансовых потерь и предложить рекомендации по их снижению.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="s7" class="slide">
+    <div class="container">
+      <span class="badge">Слайд 7 · Общий вывод команды</span>
+      <h2 class="reveal">Причины роста жалоб формируются сразу несколькими факторами</h2>
+      <div class="flow">
+        <div class="flow-step glass reveal">💳<b>Неудачные оплаты</b></div>
+        <div class="arrow reveal">→</div>
+        <div class="flow-step glass reveal">🚶<b>Часть клиентов уходит</b></div>
+        <div class="arrow reveal">→</div>
+        <div class="flow-step glass reveal">📉<b>Новых клиентов меньше</b></div>
+        <div class="arrow reveal">→</div>
+        <div class="flow-step glass reveal">📦<b>Пик заказов в ноябре</b></div>
+      </div>
+      <div class="flow2">
+        <div class="flow-step glass reveal">🔥<b>Высокая нагрузка</b></div>
+        <div class="arrow reveal">→</div>
+        <div class="flow-step glass reveal">⚠️<b>Рост product_not_received</b></div>
+        <div class="arrow reveal">→</div>
+        <div class="flow-step glass reveal pulse">💰<b>Рост финансовых потерь</b></div>
+      </div>
+      <p class="glass mini-card reveal"><b>Вывод:</b> рост финансовых потерь является следствием сочетания нескольких факторов, а не одной причины.</p>
+    </div>
+  </section>
+
+  <section id="s3" class="slide section-cyan">
+    <div class="container">
+      <span class="badge">Слайд 3 · Гипотеза 1</span>
+      <h2 class="reveal">Неудачная оплата является фактором риска ухода клиента.</h2>
+      <div class="grid2">
+        <div class="glass card reveal">
+          <p class="small">Основной результат</p>
+          <div class="metric grad counter" data-target="85.2">0</div>
+          <p class="muted">пользователей не совершают повторную покупку после первой неудачной оплаты.</p>
+          <p class="small">Вернулись 14.8% <br>не вернулись 85.2%<br>среднее время возврата — 28.3 дня.</p>
+        </div>
+        <div class="glass card reveal">
+          <canvas id="chartPayment"></canvas>
+          <div class="legend">
+            <span><i class="legend-dot" style="background:#22d3ee"></i>Не вернулись — 85.2%</span>
+            <span><i class="legend-dot" style="background:#8b5cf6"></i>Вернулись — 14.8%</span>
+          </div>
+          <p class="muted"><b>Вывод:</b> неудачные оплаты являются одной из причин потери клиентов и снижения удержания.</p>
+          <button class="btn primary" onclick="openModal('paymentDetails')">📊 Показать дополнительные графики</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <div id="paymentDetails" class="modal" onclick="closeModalOnBg(event,'paymentDetails')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <span class="badge">Дополнительная проверка · Failed payment</span>
+          <h3 style="margin-top:14px;">Почему failed payment можно считать фактором риска ухода?</h3>
+        </div>
+        <button class="close-btn" onclick="closeModal('paymentDetails')">✕ Закрыть</button>
+      </div>
+      <div class="grid2">
+        <div class="glass card image-card">
+          <h3>Через сколько дней пользователи возвращаются</h3>
+          <img class="graph-img" src="./images/1234.png" alt="Гистограмма возврата пользователей после payment_failed">
+          
+        </div>
+        <div class="glass card image-card">
+          <h3>Повторные неудачные оплаты и отток</h3>
+          <img class="graph-img" src="./images/123.png" alt="Связь между количеством payment_failed и вероятностью ухода клиента">
+          
+        </div>
+      </div>
+      <div class="glass card" style="margin-top:16px;">
+        <h3>Числовая проверка</h3>
+        <table class="data-table">
+          <thead><tr><th>failed_cnt</th><th>users</th><th>returned</th><th>churn_%</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>403</td><td>340</td><td>15.63%</td></tr>
+            <tr><td>2</td><td>16</td><td>16</td><td>0.00%</td></tr>
+            <tr><td>3</td><td>4</td><td>4</td><td>0.00%</td></tr>
+            <tr><td>5</td><td>1</td><td>1</td><td>0.00%</td></tr>
+            <tr><td>6</td><td>1</td><td>1</td><td>0.00%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <section id="s4" class="slide section-purple">
+    <div class="container">
+      <span class="badge">Слайд 4 · Гипотеза 2</span>
+      <h2 class="reveal">Уменьшилось количество новых клиентов.Заказы могли упасть не из-за ухода старых клиентов, а из-за недостатка новых.</h2>
+      <div class="grid2">
+        <div class="glass card reveal"><img src="./images/12345.png" alt="" style="width: 530px;height: 300px;"></div>
+        <div class="glass card reveal">
+          <p class="small">Ключевая находка</p>
+          <div class="metric grad">12 000</div>
+          <p class="muted">Количество новых пользователей постепенно снижается— <b>12&nbsp;000</b>.</p>
+          <p class="muted"><b>Вывод:</b> Первая неудачная оплата существенно снижает вероятность повторной покупки. Следовательно, повышение стабильности процесса оплаты может уменьшить отток клиентов.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s5" class="slide">
+    <div class="container">
+      <span class="badge">Слайд 5 · Гипотеза 3</span>
+      <h2 class="reveal">Product not received чаще возникает у on_time-заказов, а пик приходится на декабрь</h2>
+      <p class="muted reveal" style="max-width:980px;">
+        <b>Гипотеза:</b> большинство споров <code>product_not_received</code> связано с заказами, отмеченными как <code>on_time</code>,
+        а их количество распределено по месяцам неравномерно, с максимальным значением в декабре.
+      </p>
+
+      <div class="grid3">
+        <div class="glass card reveal">
+          <h3>1. Причины споров</h3>
+          <canvas id="chartReasons"></canvas>
+          <p class="small"><b>Вывод:</b> <code>product_not_received</code> — самая частая причина споров: <b>723 случая</b>. Поэтому именно её анализируем глубже.</p>
+        </div>
+        <div class="glass card reveal">
+          <h3>2. Статусы доставки</h3>
+          <canvas id="chartStatus"></canvas>
+          <p class="small"><b>Вывод:</b> <b>654 из 713</b> случаев относятся к <code>on_time</code>. Значит, проблема не объясняется только поздними доставками.</p>
+        </div>
+        <div class="glass card reveal">
+          <h3>3. Динамика по месяцам</h3>
+          <canvas id="chartDisputesMonth"></canvas>
+          <p class="small"><b>Вывод:</b> количество споров неравномерно: максимум в декабре — <b>104 спора</b>.</p>
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:16px;">
+        <div class="glass mini-card card reveal"><div class="metric grad">723</div><p class="small">самая частая причина споров — product_not_received</p></div>
+        <div class="glass mini-card card reveal"><div class="metric grad">91.7%</div><p class="small">product_not_received приходится на on_time</p></div>
+        <div class="glass mini-card card reveal"><div class="metric grad">104</div><p class="small">декабрь — максимум споров</p></div>
+      </div>
+
+      <div class="glass mini-card reveal" style="margin-top:16px;">
+        <p><b>Итог:</b> данные подтверждают основную закономерность: большинство споров <code>product_not_received</code> возникает по заказам со статусом <code>on_time</code>, а максимум приходится на декабрь. Это не доказывает технический сбой, но показывает аномальный период: его нужно дополнительно проверить через логи платформы, нагрузку и процесс подтверждения доставки.</p>
+        <button class="btn primary" onclick="openModal('pnrDetails')">🔎 Показать дополнительные проверки</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="pnrDetails" class="modal" onclick="closeModalOnBg(event,'pnrDetails')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <span class="badge">Дополнительные проверки · Product not received</span>
+          <h3 style="margin-top:14px;">Почему вывод по гипотезе аккуратный?</h3>
+        </div>
+        <button class="close-btn" onclick="closeModal('pnrDetails')">✕ Закрыть</button>
+      </div>
+      <div class="grid2">
+        <div class="glass card">
+          <h3>Все доставки по статусам</h3>
+          <canvas id="chartAllDeliveryStatus"></canvas>
+          <p class="small"><b>Вывод:</b> <code>on_time</code> — самый частый статус среди всех доставок. Поэтому важно смотреть не только абсолютное число споров, но и долю.</p>
+        </div>
+        <div class="glass card">
+          <h3>Доля проблемы среди on_time</h3>
+          <div class="metric grad">0.742%</div>
+          <p class="muted">654 спора <code>product_not_received</code> среди 88&nbsp;095 своевременных доставок.</p>
+          <p class="small"><b>Вывод:</b> проблема не массовая для всех on_time-доставок. Она локальная и касается небольшой группы заказов, которые система считает доставленными вовремя.</p>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:16px;">
+        <div class="glass card">
+          <h3>Месяцы с наибольшим количеством споров</h3>
+          <canvas id="chartTopMonths"></canvas>
+          <p class="small"><b>Вывод:</b> декабрь заметно выделяется: 104 случая, больше чем в январе 2026 и октябре 2025.</p>
+        </div>
+        <div class="glass card">
+          <h3>Как правильно интерпретировать</h3>
+          <p class="muted">Данные подтверждают две части гипотезы: споры <code>product_not_received</code> чаще всего связаны с <code>on_time</code> и имеют пик в декабре.</p>
+          <p class="muted">Но эти данные <b>не доказывают</b> сбой платформы. Корректный вывод: декабрь — аномальный период, который требует дополнительной проверки логов, нагрузки и процесса подтверждения доставки.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="s6" class="slide section-pink">
+    <div class="container">
+      <span class="badge">Слайд 6 · Гипотеза 4 + Гипотеза 2</span>
+      <h2 class="reveal">Финансовые потери связаны не с отдельными курьерами, а, вероятно, с ростом нагрузки на платформу</h2>
+      <div class="grid2">
+        <div class="glass card reveal">
+          <h3>Dispute rate по курьерам</h3>
+          <canvas id="chartCouriers"></canvas>
+          <p class="small">Максимальные значения около 2.71%, 2.35%, 2.11%.</p>
+        </div>
+        <div class="glass card reveal">
+          <h3>Количество заказов по месяцам</h3>
+          <canvas id="chartOrders"></canvas>
+          <p class="small">В ноябре — пик заказов: 11 840 оплаченных заказов.</p>
+        </div>
+      </div>
+      <p class="glass mini-card reveal"><b>Общий вывод:</b> Даже у самых проблемных курьеров доля спорных доставок не превышает 2.7%, поэтому финансовые потери нельзя объяснить качеством работы отдельных курьеров. Совместный анализ показал, что перед декабрьским ростом споров в ноябре наблюдался пик количества заказов. Это позволяет предположить, что увеличение нагрузки могло повлиять на процессы обработки и подтверждения доставки.</p>
+    </div>
+  </section>
+
+  
+
+  <section id="s8" class="slide section-cyan">
+    <div class="container">
+      <span class="badge">Слайд 8 · Рекомендации бизнесу</span>
+      <h2 class="reveal">Что рекомендуется сделать</h2>
+      <div class="grid2">
+        <div class="glass card reveal"><div class="icon">🧾</div><h3>1. Проверить декабрьские логи платформы</h3><p class="muted">Поиск ошибок обработки заказов и анализ массовых сбоев.</p></div>
+        <div class="glass card reveal"><div class="icon">⚙️</div><h3>2. Подготовить систему к пиковым нагрузкам</h3><p class="muted">Масштабирование серверов и нагрузочное тестирование перед высоким сезоном.</p></div>
+        <div class="glass card reveal"><div class="icon">✅</div><h3>3. Усилить подтверждение получения заказа</h3><p class="muted">PIN-код, QR-код, фото вручения или электронная подпись.</p></div>
+        <div class="glass card reveal"><div class="icon">💳</div><h3>4. Улучшить failed payment flow</h3><p class="muted">Понятные сообщения об ошибках, повторная попытка оплаты и уведомления пользователям.</p></div>
+      </div>
+      <div class="btnrow reveal">
+        <a class="btn" href="#s1">↩ Вернуться в начало</a>
+      </div>
+    </div>
+  </section>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const dots = document.getElementById('dots');
+slides.forEach((s,i)=>{
+  const a=document.createElement('a');
+  a.href='#'+s.id; a.className='dot'; dots.appendChild(a);
+});
+
+const progress = document.getElementById('progress');
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('show'); });
+}, { threshold: .14 });
+reveals.forEach(r => observer.observe(r));
+
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - innerHeight;
+  progress.style.width = (scrollY / h * 100) + '%';
+  const idx = slides.findIndex(s => {
+    const r = s.getBoundingClientRect();
+    return r.top <= innerHeight/2 && r.bottom >= innerHeight/2;
+  });
+  [...dots.children].forEach((d,i)=>d.classList.toggle('active', i===idx));
+});
+
+const titleText = "Сначала главный вывод, затем доказательства и рекомендации.";
+let charIndex = 0;
+function typeText(){
+  document.getElementById('typing').textContent = titleText.slice(0, charIndex++);
+  if(charIndex <= titleText.length) setTimeout(typeText, 45);
+}
+typeText();
+
+function roundedRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+function prepCanvas(id){
+  const c = document.getElementById(id);
+  if (!c) return null;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  const W = Math.max(rect.width || c.clientWidth || 320, 320);
+  const H = Math.max(rect.height || c.clientHeight || 220, 220);
+  c.width = Math.floor(W * dpr);
+  c.height = Math.floor(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {c, ctx, W, H};
+}
+function drawGrid(ctx,W,H,p){
+  ctx.strokeStyle='rgba(255,255,255,.12)';
+  ctx.lineWidth=1;
+  for(let i=0;i<4;i++){ const y=p+(H-2*p)*i/3; ctx.beginPath(); ctx.moveTo(p,y); ctx.lineTo(W-p,y); ctx.stroke(); }
+}
+function drawBars(id, labels, values, showValues=true) {
+  const prepared = prepCanvas(id); if (!prepared) return; const {ctx,W,H}=prepared; const p=42, max=Math.max(...values)*1.15;
+  ctx.clearRect(0,0,W,H); drawGrid(ctx,W,H,p);
+  const bw=(W-2*p)/values.length*.62;
+  values.forEach((v,i)=>{
+    const x=p+(W-2*p)*(i+.19)/values.length, bh=(H-2*p)*(v/max), y=H-p-bh;
+    const g=ctx.createLinearGradient(0,y,0,H-p); g.addColorStop(0,'#67e8f9'); g.addColorStop(1,'#8b5cf6');
+    ctx.fillStyle=g; roundedRect(ctx,x,y,bw,bh,8); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.78)'; ctx.font='12px Arial'; ctx.textAlign='center';
+    ctx.fillText(labels[i], x+bw/2, H-12);
+    if(showValues) ctx.fillText(v, x+bw/2, y-6);
+  });
+}
+function drawLine(id, labels, values) {
+  const prepared = prepCanvas(id); if (!prepared) return; const {ctx,W,H}=prepared; const p=45;
+  const max=Math.max(...values)*1.08, min=Math.min(...values)*.9;
+  ctx.clearRect(0,0,W,H); drawGrid(ctx,W,H,p);
+  const pts=values.map((v,i)=>[p+(W-2*p)*i/(values.length-1), H-p-(H-2*p)*(v-min)/(max-min)]);
+  const grad=ctx.createLinearGradient(0,0,W,0); grad.addColorStop(0,'#67e8f9'); grad.addColorStop(1,'#f472b6');
+  ctx.strokeStyle=grad; ctx.lineWidth=4; ctx.beginPath(); pts.forEach((pt,i)=> i ? ctx.lineTo(...pt) : ctx.moveTo(...pt)); ctx.stroke();
+  pts.forEach(([x,y])=>{ ctx.fillStyle='#67e8f9'; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font='12px Arial'; ctx.textAlign='center';
+  labels.forEach((l,i)=>{ if(i%2===0 || labels.length<=6) ctx.fillText(l, pts[i][0], H-12); });
+}
+function drawDonut(id, labels, values) {
+  const prepared = prepCanvas(id); if (!prepared) return; const {ctx,W,H}=prepared; const cx=W/2, cy=H/2-4, r=Math.min(W,H)/3.15;
+  ctx.clearRect(0,0,W,H);
+  const sum=values.reduce((a,b)=>a+b,0); let start=-Math.PI/2;
+  const colors=['#22d3ee','#8b5cf6','#f472b6'];
+  values.forEach((v,i)=>{
+    const a=v/sum*Math.PI*2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,start,start+a); ctx.lineWidth=r*.36;
+    ctx.strokeStyle=colors[i]; ctx.lineCap='butt'; ctx.stroke(); start+=a;
+  });
+  ctx.fillStyle='white'; ctx.font='900 34px Arial'; ctx.textAlign='center';
+  ctx.fillText(Math.round(values[0]/sum*100)+'%',cx,cy+5);
+  ctx.font='700 13px Arial'; ctx.fillStyle='rgba(226,232,240,.9)';
+  ctx.fillText(labels[0],cx,cy+28);
+}
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='pnrDetails'){
+    setTimeout(()=>{
+      drawBars('chartAllDeliveryStatus',['on_time','late','failed'],[88095,9381,2066],true);
+      drawBars('chartTopMonths',['Dec 25','Jan 26','Oct 25','Aug 25','Sep 25','Jun 25'],[104,74,70,67,64,62],true);
+    }, 80);
+  }
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModalOnBg(e,id){ if(e.target.id===id) closeModal(id); }
+
+
+function animateCounters(){
+  document.querySelectorAll('.counter').forEach(el=>{
+    let target=parseFloat(el.dataset.target), val=0, step=target/55;
+    const timer=setInterval(()=>{
+      val+=step;
+      if(val>=target){val=target; clearInterval(timer);}
+      el.textContent=val.toFixed(1)+'%';
+    }, 25);
+  });
+}
+setTimeout(()=>{
+  drawDonut('chartPayment',['Не вернулись','Вернулись'],[85.2,14.8]);
+  drawLine('chartNewClients',['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],[3738,2450,1800,1400,1080,830,690,580,450,340,300,208]);
+  drawBars('chartReasons',['PNR','quality','subscr.','duplicate','fraud'],[723,542,269,252,200],true);
+  drawBars('chartStatus',['on_time','late','failed'],[654,50,9],true);
+  drawLine('chartDisputesMonth',['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],[12,30,38,41,45,62,56,67,64,70,56,104]);
+  drawBars('chartAllDeliveryStatus',['on_time','late','failed'],[88095,9381,2066],true);
+  drawBars('chartTopMonths',['Dec 25','Jan 26','Oct 25','Aug 25','Sep 25','Jun 25'],[104,74,70,67,64,62],true);
+  drawBars('chartCouriers',['C247','C126','C285','C322','C37'],[2.71,2.35,2.11,2.05,1.96],true);
+  drawLine('chartOrders',['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],[5639,6214,6650,7066,7502,7890,8422,8782,9251,9754,11840,10532]);
+  animateCounters();
+}, 300);
+window.addEventListener('resize', () => setTimeout(() => location.reload(), 200));
+</script>
+</body>
+</html>
