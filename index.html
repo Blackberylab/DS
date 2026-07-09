@@ -7,6 +7,7 @@
   <style>
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    html, body { -webkit-overflow-scrolling: touch; overscroll-behavior-y: auto; }
     body {
       margin: 0;
       background: #070a13;
@@ -29,7 +30,7 @@
     .dot { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,.25); transition: .25s; }
     .dot.active { background: #67e8f9; transform: scale(1.35); }
     .slide {
-      min-height: 100vh; padding: 82px 7vw; position: relative;
+      min-height: 100svh; padding: 82px 7vw; position: relative;
       display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,.08);
       overflow: hidden;
     }
@@ -151,8 +152,7 @@
         </div>
       </div>
       <div class="glass card float reveal">
-        <p class="small">Команда: PLUVIA</p>
-        <h3>Garayeva Rufina и ...</h3>
+        <h3>Garayeva Rufina и Ganihanova Fotima</h3>
         <div class="team-grid">
           <div class="team-box">📊<br><b>Hypotheses</b><br><span class="small">проверка причин</span></div>
           <div class="team-box">💳<br><b>Payments</b><br><span class="small">failed payment</span></div>
@@ -320,7 +320,10 @@
 
       <div class="glass mini-card reveal" style="margin-top:16px;">
         <p><b>Итог:</b> данные подтверждают основную закономерность: большинство споров <code>product_not_received</code> возникает по заказам со статусом <code>on_time</code>, а максимум приходится на декабрь. Это не доказывает технический сбой, но показывает аномальный период: его нужно дополнительно проверить через логи платформы, нагрузку и процесс подтверждения доставки.</p>
-        <button class="btn primary" onclick="openModal('pnrDetails')">🔎 Показать дополнительные проверки</button>
+        <div class="btnrow" style="margin-top:14px;">
+          <button class="btn primary" onclick="openModal('pnrDetails')">🔎 Показать дополнительные проверки</button>
+          <button class="btn" onclick="openModal('pnrStatCheck')">📊 Статистическая проверка</button>
+        </div>
       </div>
     </div>
   </section>
@@ -362,7 +365,61 @@
     </div>
   </div>
 
-  <section id="s6" class="slide section-pink">
+
+
+  <div id="pnrStatCheck" class="modal" onclick="closeModalOnBg(event,'pnrStatCheck')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <span class="badge">Статистическая проверка · Гипотеза 3</span>
+          <h3 style="margin-top:14px;">Связан ли <code>product_not_received</code> со статусом доставки?</h3>
+        </div>
+        <button class="close-btn" onclick="closeModal('pnrStatCheck')">✕ Закрыть</button>
+      </div>
+
+      <div class="grid2">
+        <div class="glass card">
+          <h3>Проверяемая связь</h3>
+          <p class="muted"><b>H₀:</b> спор <code>product_not_received</code> не связан со статусом доставки.</p>
+          <p class="muted"><b>H₁:</b> между статусом доставки и спором <code>product_not_received</code> есть статистически значимая связь.</p>
+          <p class="muted">Использован χ²-тест независимости, потому что сравниваются две категориальные переменные: статус доставки и наличие/отсутствие спора.</p>
+        </div>
+        <div class="glass card">
+          <h3>Доля product_not_received по статусам</h3>
+          <canvas id="chartStatRate"></canvas>
+          <p class="small"><b>Интерпретация графика:</b> среди on_time-доставок доля таких споров выше, чем среди late и failed. Это поддерживает вывод, что проблема не сводится только к поздней доставке.</p>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:16px;">
+        <div class="glass card">
+          <h3>Таблица сопряжённости</h3>
+          <table class="data-table">
+            <thead>
+              <tr><th>Статус доставки</th><th>Другие / нет спора</th><th>product_not_received</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>failed</code></td><td>2 175</td><td><b>9</b></td></tr>
+              <tr><td><code>late</code></td><td>9 853</td><td><b>50</b></td></tr>
+              <tr><td><code>on_time</code></td><td>92 175</td><td><b>654</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="glass card">
+          <h3>Результаты χ²-теста</h3>
+          <div class="grid3">
+            <div class="glass mini-card"><div class="metric grad" style="font-size:42px;">7.65</div><p class="small">χ²</p></div>
+            <div class="glass mini-card"><div class="metric grad" style="font-size:42px;">0.0218</div><p class="small">p-value</p></div>
+            <div class="glass mini-card"><div class="metric grad" style="font-size:42px;">2</div><p class="small">df</p></div>
+          </div>
+          <p class="muted"><b>Вывод:</b> так как <b>p-value = 0.0218 &lt; 0.05</b>, связь между статусом доставки и появлением спора <code>product_not_received</code> статистически значима.</p>
+          <p class="muted">Тест подтверждает наличие связи, но сам по себе не доказывает техническую причину. Поэтому декабрьский рост нужно дополнительно проверить через логи платформы и процесс подтверждения получения заказа.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <section id="s6" class="slide section-pink">
     <div class="container">
       <span class="badge">Слайд 6 · Гипотеза 4 + Гипотеза 2</span>
       <h2 class="reveal">Финансовые потери связаны не с отдельными курьерами, а, вероятно, с ростом нагрузки на платформу</h2>
@@ -389,7 +446,7 @@
       <span class="badge">Слайд 8 · Рекомендации бизнесу</span>
       <h2 class="reveal">Что рекомендуется сделать</h2>
       <div class="grid2">
-        <div class="glass card reveal"><div class="icon">🧾</div><h3>1. Проверить декабрьские логи платформы</h3><p class="muted">Поиск ошибок обработки заказов и анализ массовых сбоев.</p></div>
+        <div class="glass card reveal"><div class="icon">🧾</div><h3>1. Проверить ноябрьские логи платформы</h3><p class="muted">Поиск ошибок обработки заказов и анализ массовых сбоев.</p></div>
         <div class="glass card reveal"><div class="icon">⚙️</div><h3>2. Подготовить систему к пиковым нагрузкам</h3><p class="muted">Масштабирование серверов и нагрузочное тестирование перед высоким сезоном.</p></div>
         <div class="glass card reveal"><div class="icon">✅</div><h3>3. Улучшить подтверждение получения заказа</h3><p class="muted">Внедрить дополнительные способы подтверждения получения заказа (QR-код, PIN-код, электронная подпись или фотография вручения).</p></div>
         <div class="glass card reveal"><div class="icon">💳</div><h3>4. Снизить потери после failed payment</h3><p class="muted">Сделать сообщения об ошибках более понятными, добавить возможность быстро повторить оплату и своевременно уведомлять пользователя.</p></div>
@@ -425,7 +482,7 @@ window.addEventListener('scroll', () => {
   [...dots.children].forEach((d,i)=>d.classList.toggle('active', i===idx));
 });
 
-const titleText = "Сначала главный вывод, затем доказательства и рекомендации.";
+const titleText = "Защиту представляет команда PLUVIA.";
 let charIndex = 0;
 function typeText(){
   document.getElementById('typing').textContent = titleText.slice(0, charIndex++);
@@ -505,6 +562,11 @@ function openModal(id){
       drawBars('chartTopMonths',['Dec 25','Jan 26','Oct 25','Aug 25','Sep 25','Jun 25'],[104,74,70,67,64,62],true);
     }, 80);
   }
+  if(id==='pnrStatCheck'){
+    setTimeout(()=>{
+      drawBars('chartStatRate',['failed','late','on_time'],[0.41,0.50,0.70],true);
+    }, 80);
+  }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function closeModalOnBg(e,id){ if(e.target.id===id) closeModal(id); }
@@ -520,7 +582,7 @@ function animateCounters(){
     }, 25);
   });
 }
-setTimeout(()=>{
+function drawMainCharts(){
   drawDonut('chartPayment',['Не вернулись','Вернулись'],[85.2,14.8]);
   drawLine('chartNewClients',['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],[3738,2450,1800,1400,1080,830,690,580,450,340,300,208]);
   drawBars('chartReasons',['PNR','quality','subscr.','duplicate','fraud'],[723,542,269,252,200],true);
@@ -530,9 +592,34 @@ setTimeout(()=>{
   drawBars('chartTopMonths',['Dec 25','Jan 26','Oct 25','Aug 25','Sep 25','Jun 25'],[104,74,70,67,64,62],true);
   drawBars('chartCouriers',['C247','C126','C285','C322','C37'],[2.71,2.35,2.11,2.05,1.96],true);
   drawLine('chartOrders',['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],[5639,6214,6650,7066,7502,7890,8422,8782,9251,9754,11840,10532]);
+}
+function drawOpenModalCharts(){
+  if(document.getElementById('pnrDetails')?.classList.contains('open')){
+    drawBars('chartAllDeliveryStatus',['on_time','late','failed'],[88095,9381,2066],true);
+    drawBars('chartTopMonths',['Dec 25','Jan 26','Oct 25','Aug 25','Sep 25','Jun 25'],[104,74,70,67,64,62],true);
+  }
+  if(document.getElementById('pnrStatCheck')?.classList.contains('open')){
+    drawBars('chartStatRate',['failed','late','on_time'],[0.41,0.50,0.70],true);
+  }
+}
+setTimeout(()=>{
+  drawMainCharts();
   animateCounters();
 }, 300);
-window.addEventListener('resize', () => setTimeout(() => location.reload(), 200));
+
+
+let resizeTimer;
+let lastWindowWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+  const newWidth = window.innerWidth;
+  if (Math.abs(newWidth - lastWindowWidth) < 24) return;
+  lastWindowWidth = newWidth;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    drawMainCharts();
+    drawOpenModalCharts();
+  }, 250);
+});
 </script>
 </body>
 </html>
